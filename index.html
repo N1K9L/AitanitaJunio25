@@ -142,7 +142,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* --- PANTALLA COMPLETA DE LA SORPRESA (RECORRIDO) --- */
+        /* --- PANTALLA COMPLETA DE LA SORPRESA (RECORRIDO CUMPLEAÑOS) --- */
         #journey-overlay {
             position: fixed;
             top: 0;
@@ -197,6 +197,83 @@
             color: #ffeb3b;
         }
 
+        /* --- NUEVO: CUADRO BONITO DE MENSAJE (MODAL PERSONALIZADO) --- */
+        #custom-alert-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(74, 20, 140, 0.5); /* Fondo oscuro semitransparente */
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #custom-alert-overlay.show {
+            display: flex;
+            opacity: 1;
+        }
+
+        .custom-alert-box {
+            background-color: white;
+            border: 4px solid var(--purple-400);
+            border-radius: 20px;
+            padding: 30px 20px;
+            max-width: 85%;
+            width: 320px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
+        }
+
+        #custom-alert-overlay.show .custom-alert-box {
+            transform: scale(1);
+        }
+
+        .custom-alert-title {
+            color: var(--purple-700);
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .custom-alert-text {
+            color: var(--purple-900);
+            font-size: 1.1em;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            background-color: var(--purple-100);
+            padding: 15px;
+            border-radius: 15px;
+            font-style: italic;
+        }
+
+        .custom-alert-btn {
+            background-color: var(--purple-500);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 20px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .custom-alert-btn:hover {
+            background-color: var(--purple-700);
+        }
+
+        .custom-alert-btn:active {
+            transform: scale(0.95);
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -223,6 +300,15 @@
     <div id="journey-overlay">
         <div id="journey-text"></div>
         <div id="journey-hint">Toca la pantalla para continuar ✨</div>
+    </div>
+
+    <!-- Cuadro de Mensaje Bonito (Modal) -->
+    <div id="custom-alert-overlay">
+        <div class="custom-alert-box">
+            <div class="custom-alert-title">¡Muy bien mi niña hermosa! 💜</div>
+            <div class="custom-alert-text" id="custom-alert-text"></div>
+            <button class="custom-alert-btn" onclick="closeCustomAlert()">Gracias mi amor ✨</button>
+        </div>
     </div>
 
     <script>
@@ -351,7 +437,6 @@
                         localStorage.removeItem(`aitana-inj-${i}`);
                         card.classList.remove('completed');
                         
-                        // Revertimos estilos extra del botón por si acaso
                         btn.style.backgroundColor = "";
                         btn.style.color = "";
                         
@@ -368,7 +453,8 @@
                             iniciarRecorridoCumple(card, btn, i);
                         } else {
                             const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-                            alert(`¡Muy bien mi niña hermosa! 💜\n\nRecuerda: ${randomPhrase}`);
+                            // USAMOS EL NUEVO CUADRO BONITO EN VEZ DEL ALERT
+                            mostrarCuadroBonito(`" ${randomPhrase} "`);
                             marcarCompletado(card, btn, i);
                         }
                     }
@@ -384,10 +470,32 @@
             card.classList.add('completed');
             card.classList.remove('birthday');
             btn.innerText = "¡Lista mi niña! 💜";
-            // Forzamos colores en línea para el estado completado
             btn.style.backgroundColor = "var(--purple-700)";
             btn.style.color = "white";
             localStorage.setItem(`aitana-inj-${dia}`, 'true');
+        }
+
+        // --- FUNCIONES DEL CUADRO BONITO DE MENSAJE (MODAL) ---
+        function mostrarCuadroBonito(texto) {
+            const overlay = document.getElementById('custom-alert-overlay');
+            const textoEl = document.getElementById('custom-alert-text');
+            
+            textoEl.innerHTML = `<strong>Recuerda:</strong><br><br>${texto} ${getRandomEmoji()}`;
+            
+            overlay.style.display = 'flex';
+            // Pequeño retraso para que la animación de opacidad funcione
+            setTimeout(() => {
+                overlay.classList.add('show');
+            }, 10);
+        }
+
+        function closeCustomAlert() {
+            const overlay = document.getElementById('custom-alert-overlay');
+            overlay.classList.remove('show');
+            // Esperar a que termine la animación para ocultarlo completamente
+            setTimeout(() => {
+                overlay.style.display = 'none';
+            }, 300);
         }
 
         // --- LÓGICA DEL RECORRIDO DE CUMPLEAÑOS ---
@@ -406,22 +514,20 @@
             overlay.onclick = function() {
                 indiceActual++;
                 
-                // Efecto de desaparecer y aparecer
                 textEl.style.animation = 'none';
-                textEl.offsetHeight; // Forzar reflow
+                textEl.offsetHeight; 
                 textEl.style.animation = 'fadeIn 0.5s ease-in';
 
                 if (indiceActual < phrases.length) {
                     textEl.innerHTML = `<span class="emoji-large">${getRandomEmoji()}</span>${phrases[indiceActual]}`;
                 } else if (indiceActual === phrases.length) {
-                    // Mensaje final
                     textEl.innerHTML = `<span class="emoji-large">🎁💖</span><span class="final-message">${finalMessage}</span>`;
                     hintEl.innerText = "Toca una vez más para marcar tu inyección de hoy 💉";
                 } else {
-                    // Cerrar y marcar
                     overlay.classList.remove('active');
                     marcarCompletado(card, btn, dia);
-                    alert("¡Feliz cumpleaños Aitana! Eres muy amada. 💜");
+                    // Usamos el cuadro bonito al final del cumpleaños también
+                    mostrarCuadroBonito("¡Feliz cumpleaños mi amor! Eres muy amada. 💜🎂");
                 }
             };
         }
