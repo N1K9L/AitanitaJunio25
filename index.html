@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Para mi Aitanita Linda 💜</title>
+    <style>
+        /* Paleta de tonos morados */
+        :root {
+            --purple-100: #f3e5f5;
+            --purple-200: #e1bee7;
+            --purple-300: #ce93d8;
+            --purple-400: #ba68c8;
+            --purple-500: #9c27b0;
+            --purple-600: #8e24aa;
+            --purple-700: #7b1fa2;
+            --purple-900: #4a148c;
+        }
+
+        body {
+            background-color: var(--purple-100);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--purple-900);
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--purple-700);
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: var(--purple-600);
+            font-size: 1.1em;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        /* Cuadrícula del calendario */
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            max-width: 800px;
+            margin: 0 auto 40px auto;
+        }
+
+        .day-card {
+            background-color: white;
+            border: 2px solid var(--purple-300);
+            border-radius: 15px;
+            padding: 15px 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s, background-color 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .day-card h3 {
+            margin: 0 0 10px 0;
+            color: var(--purple-700);
+        }
+
+        .btn-inyectar {
+            background-color: var(--purple-500);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9em;
+            transition: background-color 0.3s;
+        }
+
+        .btn-inyectar:hover {
+            background-color: var(--purple-700);
+        }
+
+        /* Estado completado */
+        .day-card.completed {
+            background-color: var(--purple-200);
+            border-color: var(--purple-500);
+            transform: scale(0.95);
+        }
+        .day-card.completed .btn-inyectar {
+            /* Mantiene el botón visible y clickeable para desmarcar */
+            background-color: var(--purple-700);
+            cursor: pointer;
+        }
+
+        /* Estilo para la sorpresa bloqueada (Gris) */
+        .locked-birthday {
+            background-color: #f5f5f5;
+            border: 2px dashed #9e9e9e;
+            box-shadow: none;
+        }
+        .locked-birthday h3 {
+            color: #757575;
+        }
+
+        /* Estilo SÚPER ESPECIAL para el cumpleaños DESBLOQUEADO (10 de junio) */
+        .birthday {
+            background: linear-gradient(135deg, var(--purple-500), var(--purple-300), var(--purple-600));
+            background-size: 200% 200%;
+            border: 4px solid #ffeb3b; /* Borde dorado */
+            box-shadow: 0 0 30px var(--purple-500);
+            animation: gradientMove 3s ease infinite, pulse 1.5s infinite;
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .birthday h3 {
+            color: white;
+            font-size: 1.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 5px;
+        }
+
+        .birthday .btn-inyectar {
+            background-color: #ffeb3b;
+            color: var(--purple-900);
+            font-size: 1.1em;
+            padding: 10px 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1.05); }
+            50% { transform: scale(1.1); box-shadow: 0 0 40px var(--purple-400); }
+            100% { transform: scale(1.05); }
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* --- PANTALLA COMPLETA DE LA SORPRESA (RECORRIDO) --- */
+        #journey-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, var(--purple-900), var(--purple-600));
+            color: white;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1s ease;
+            padding: 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        #journey-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #journey-text {
+            font-size: 1.8em;
+            font-weight: bold;
+            line-height: 1.4;
+            max-width: 600px;
+            animation: fadeIn 0.5s ease-in;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.4);
+        }
+
+        #journey-hint {
+            position: absolute;
+            bottom: 40px;
+            font-size: 1em;
+            color: var(--purple-200);
+            animation: floatHint 2s infinite;
+        }
+
+        .emoji-large {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .final-message {
+            font-size: 1.5em !important;
+            color: #ffeb3b;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes floatHint {
+            0% { transform: translateY(0); opacity: 0.5; }
+            50% { transform: translateY(-10px); opacity: 1; }
+            100% { transform: translateY(0); opacity: 0.5; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Para mi Blankita Chiquita 💜</h1>
+    <div class="subtitle">Recordatorio: Tu inyección es a las 9:00. ¡Tú puedes, mi amor! 🦄🐙🦋</div>
+
+    <div class="calendar" id="calendar">
+        <!-- Los días se generarán con JavaScript -->
+    </div>
+
+    <!-- Pantalla de Sorpresa para el 10 de Junio -->
+    <div id="journey-overlay">
+        <div id="journey-text"></div>
+        <div id="journey-hint">Toca la pantalla para continuar ✨</div>
+    </div>
+
+    <script>
+        const startDay = 3;
+        const endDay = 25;
+        const birthday = 10;
+        
+        const emojis = ['🦄', '🐙', '👾', '🦋', '🪼', '🦉', '🐷', '🐛', '💜', '✨'];
+
+        const phrases = [
+            "Te amo un milllon de millones de trillones",
+            "te amo mi blankita chiquita",
+            "secuestrame con tus ojitos",
+            "no necesito un cielo azul solo el cafe claro de tus ojos",
+            "tus ojitos conectan hasta lo mas profundo de mi alma",
+            "eres todita todiya mia",
+            "en mi mente solo esta aitana la conoces?",
+            "me encantan tus piernotas",
+            "me gustan tus brazitos",
+            "me encantan tus labios AAY",
+            "me gutan tus ojitos",
+            "me guta tu forma de decir 'voi, vale, si, ola'",
+            "amo cada suspiro tuyo",
+            "amo cada bostezo tuyo",
+            "me siento feliz de tenerte",
+            "te elijo con mi corazon y mente",
+            "aitanita linda mia",
+            "freya y lilo serian amiguitas",
+            "quiero verte en pijamita todos los dias",
+            "quiero que nuestras manos sean inseparables",
+            "quiero ser tu compañero de vida",
+            "quiero que seas mi guia y yo ser la tuya con Dios",
+            "quiero tocarte un cachetito",
+            "amo tu ternura",
+            "amo tus suspiritus de chikita",
+            "amo tu forma de ser",
+            "amo a ti",
+            "gracias por tar conmigo"
+        ];
+
+        const finalMessage = "feliz cumpleaños, estare pa ti todo lo que queda de dia, y de vida, te amo mi amor, con mucho cariño y comprension, nikol 💜🎂🎉";
+
+        function getRandomEmoji() {
+            return emojis[Math.floor(Math.random() * emojis.length)];
+        }
+
+        const calendarEl = document.getElementById('calendar');
+        
+        // Obtener la fecha real del teléfono/computadora
+        const hoy = new Date();
+        const mesActual = hoy.getMonth(); // Junio es 5
+        const diaActual = hoy.getDate();
+        
+        for (let i = startDay; i <= endDay; i++) {
+            const isBirthday = (i === birthday);
+            const card = document.createElement('div');
+            
+            // Lógica para saber si el cumple está bloqueado (Se desbloquea si es Junio y es día 10 o superior)
+            const isBirthdayUnlocked = (mesActual === 5 && diaActual >= 10);
+            const isBirthdayLocked = isBirthday && !isBirthdayUnlocked;
+
+            if (isBirthday) {
+                if (isBirthdayLocked) {
+                    card.className = 'day-card locked-birthday';
+                } else {
+                    card.className = 'day-card birthday';
+                }
+            } else {
+                card.className = 'day-card';
+            }
+            
+            card.id = `day-${i}`;
+
+            // Título del día
+            const title = document.createElement('h3');
+            if (isBirthdayLocked) {
+                title.innerHTML = `${i} de Junio 🔒`;
+            } else {
+                title.innerHTML = `${i} de Junio ${isBirthday ? '🎂🎉💖' : getRandomEmoji()}`;
+            }
+            
+            // Mensaje en la tarjeta
+            if(isBirthday) {
+                const bdayMsg = document.createElement('div');
+                if (isBirthdayLocked) {
+                    bdayMsg.innerHTML = "<strong>¡Sorpresa! 🤫</strong><br>Vuelve el 10 de junio.";
+                    bdayMsg.style.color = "#757575";
+                } else {
+                    bdayMsg.innerHTML = "<strong>¡HOY ES EL DÍA!</strong><br>Toca el botón mi amor 👇";
+                    bdayMsg.style.color = "white";
+                    bdayMsg.style.textShadow = "1px 1px 2px rgba(0,0,0,0.5)";
+                }
+                bdayMsg.style.fontSize = "0.9em";
+                bdayMsg.style.marginBottom = "10px";
+                card.appendChild(title);
+                card.appendChild(bdayMsg);
+            } else {
+                card.appendChild(title);
+            }
+
+            // Botón de inyección
+            const btn = document.createElement('button');
+            
+            if (isBirthdayLocked) {
+                btn.className = 'btn-inyectar';
+                btn.innerText = "Bloqueado ⏳";
+                btn.disabled = true;
+                btn.style.backgroundColor = "#bdbdbd";
+                btn.style.cursor = "not-allowed";
+            } else {
+                btn.className = 'btn-inyectar';
+                
+                // --- Verificación inicial de guardado ---
+                if (localStorage.getItem(`aitana-inj-${i}`)) {
+                    card.classList.add('completed');
+                    btn.innerText = "¡Lista mi niña! 💜";
+                    if(isBirthday) card.classList.remove('birthday');
+                } else {
+                    btn.innerText = isBirthday ? "✨ ABRIR SORPRESA ✨" : "Marcar a las 9:00 💉";
+                }
+
+                // --- Lógica del Clic (Marcar y Desmarcar) ---
+                btn.onclick = function() {
+                    // Si ya está guardado (clic por accidente), DESMARCAMOS
+                    if (localStorage.getItem(`aitana-inj-${i}`)) {
+                        localStorage.removeItem(`aitana-inj-${i}`);
+                        card.classList.remove('completed');
+                        
+                        // Revertimos estilos extra del botón por si acaso
+                        btn.style.backgroundColor = "";
+                        btn.style.color = "";
+                        
+                        if (isBirthday) {
+                            card.classList.add('birthday');
+                            btn.innerText = "✨ ABRIR SORPRESA ✨";
+                        } else {
+                            btn.innerText = "Marcar a las 9:00 💉";
+                        }
+                    } 
+                    // Si no está guardado, MARCAMOS
+                    else {
+                        if (isBirthday) {
+                            iniciarRecorridoCumple(card, btn, i);
+                        } else {
+                            const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
+                            alert(`¡Muy bien mi niña hermosa! 💜\n\nRecuerda: ${randomPhrase}`);
+                            marcarCompletado(card, btn, i);
+                        }
+                    }
+                };
+            }
+
+            card.appendChild(btn);
+            calendarEl.appendChild(card);
+        }
+
+        // Función para cambiar visualmente a "Completado" y guardar
+        function marcarCompletado(card, btn, dia) {
+            card.classList.add('completed');
+            card.classList.remove('birthday');
+            btn.innerText = "¡Lista mi niña! 💜";
+            // Forzamos colores en línea para el estado completado
+            btn.style.backgroundColor = "var(--purple-700)";
+            btn.style.color = "white";
+            localStorage.setItem(`aitana-inj-${dia}`, 'true');
+        }
+
+        // --- LÓGICA DEL RECORRIDO DE CUMPLEAÑOS ---
+        function iniciarRecorridoCumple(card, btn, dia) {
+            const overlay = document.getElementById('journey-overlay');
+            const textEl = document.getElementById('journey-text');
+            const hintEl = document.getElementById('journey-hint');
+            
+            let indiceActual = 0;
+
+            // Mostrar primera frase
+            overlay.classList.add('active');
+            textEl.innerHTML = `<span class="emoji-large">${getRandomEmoji()}</span>${phrases[0]}`;
+
+            // Avanzar al tocar
+            overlay.onclick = function() {
+                indiceActual++;
+                
+                // Efecto de desaparecer y aparecer
+                textEl.style.animation = 'none';
+                textEl.offsetHeight; // Forzar reflow
+                textEl.style.animation = 'fadeIn 0.5s ease-in';
+
+                if (indiceActual < phrases.length) {
+                    textEl.innerHTML = `<span class="emoji-large">${getRandomEmoji()}</span>${phrases[indiceActual]}`;
+                } else if (indiceActual === phrases.length) {
+                    // Mensaje final
+                    textEl.innerHTML = `<span class="emoji-large">🎁💖</span><span class="final-message">${finalMessage}</span>`;
+                    hintEl.innerText = "Toca una vez más para marcar tu inyección de hoy 💉";
+                } else {
+                    // Cerrar y marcar
+                    overlay.classList.remove('active');
+                    marcarCompletado(card, btn, dia);
+                    alert("¡Feliz cumpleaños Aitana! Eres muy amada. 💜");
+                }
+            };
+        }
+
+    </script>
+</body>
+</html>
