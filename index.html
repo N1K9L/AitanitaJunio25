@@ -293,16 +293,13 @@
     <div class="subtitle">Recordatorio: Tu inyección es a las 9:00. ¡Tú puedes, mi amor! 🦄🐙🦋</div>
 
     <div class="calendar" id="calendar">
-        <!-- Los días se generarán con JavaScript -->
-    </div>
+        </div>
 
-    <!-- Pantalla de Sorpresa para el 10 de Junio -->
     <div id="journey-overlay">
         <div id="journey-text"></div>
         <div id="journey-hint">Toca la pantalla para continuar ✨</div>
     </div>
 
-    <!-- Cuadro de Mensaje Bonito (Modal) -->
     <div id="custom-alert-overlay">
         <div class="custom-alert-box">
             <div class="custom-alert-title">¡Muy bien mi niña hermosa! 💜</div>
@@ -312,9 +309,23 @@
     </div>
 
     <script>
-        const startDay = 3;
-        const endDay = 25;
-        const birthday = 10;
+        // --- Generación de los días de Junio y Julio ---
+        const daysToRender = [];
+        
+        // Días de Junio (del 3 al 30)
+        for (let i = 3; i <= 30; i++) {
+            // Mantenemos la llave 'aitana-inj-${i}' para que no pierda los días de junio que ya marcó
+            daysToRender.push({ day: i, month: 'Junio', storageKey: `aitana-inj-${i}` });
+        }
+        
+        // Días de Julio (del 1 al 9)
+        for (let i = 1; i <= 9; i++) {
+            // Llave nueva para julio
+            daysToRender.push({ day: i, month: 'Julio', storageKey: `aitana-inj-julio-${i}` });
+        }
+
+        const birthdayDay = 10;
+        const birthdayMonth = 'Junio';
         
         const emojis = ['🦄', '🐙', '👾', '🦋', '🪼', '🦉', '🐷', '🐛', '💜', '✨'];
 
@@ -359,15 +370,21 @@
         
         // Obtener la fecha real del teléfono/computadora
         const hoy = new Date();
-        const mesActual = hoy.getMonth(); // Junio es 5
+        const mesActual = hoy.getMonth(); // Junio es 5, Julio es 6
         const diaActual = hoy.getDate();
         
-        for (let i = startDay; i <= endDay; i++) {
-            const isBirthday = (i === birthday);
+        // Ciclo para generar todas las tarjetas
+        daysToRender.forEach(dateObj => {
+            const i = dateObj.day;
+            const mesNombre = dateObj.month;
+            const key = dateObj.storageKey;
+
+            const isBirthday = (i === birthdayDay && mesNombre === birthdayMonth);
             const card = document.createElement('div');
             
-            // Lógica para saber si el cumple está bloqueado (Se desbloquea si es Junio y es día 10 o superior)
-            const isBirthdayUnlocked = (mesActual === 5 && diaActual >= 10);
+            // Lógica para saber si el cumple está bloqueado 
+            // (Se desbloquea si es Junio y es día 10 o superior, o si ya es un mes posterior a Junio)
+            const isBirthdayUnlocked = (mesActual === 5 && diaActual >= 10) || (mesActual > 5);
             const isBirthdayLocked = isBirthday && !isBirthdayUnlocked;
 
             if (isBirthday) {
@@ -380,14 +397,14 @@
                 card.className = 'day-card';
             }
             
-            card.id = `day-${i}`;
+            card.id = key;
 
             // Título del día
             const title = document.createElement('h3');
             if (isBirthdayLocked) {
-                title.innerHTML = `${i} de Junio 🔒`;
+                title.innerHTML = `${i} de ${mesNombre} 🔒`;
             } else {
-                title.innerHTML = `${i} de Junio ${isBirthday ? '🎂🎉💖' : getRandomEmoji()}`;
+                title.innerHTML = `${i} de ${mesNombre} ${isBirthday ? '🎂🎉💖' : getRandomEmoji()}`;
             }
             
             // Mensaje en la tarjeta
@@ -422,7 +439,7 @@
                 btn.className = 'btn-inyectar';
                 
                 // --- Verificación inicial de guardado ---
-                if (localStorage.getItem(`aitana-inj-${i}`)) {
+                if (localStorage.getItem(key)) {
                     card.classList.add('completed');
                     btn.innerText = "¡Lista mi niña! 💜";
                     if(isBirthday) card.classList.remove('birthday');
@@ -433,8 +450,8 @@
                 // --- Lógica del Clic (Marcar y Desmarcar) ---
                 btn.onclick = function() {
                     // Si ya está guardado (clic por accidente), DESMARCAMOS
-                    if (localStorage.getItem(`aitana-inj-${i}`)) {
-                        localStorage.removeItem(`aitana-inj-${i}`);
+                    if (localStorage.getItem(key)) {
+                        localStorage.removeItem(key);
                         card.classList.remove('completed');
                         
                         btn.style.backgroundColor = "";
@@ -450,12 +467,11 @@
                     // Si no está guardado, MARCAMOS
                     else {
                         if (isBirthday) {
-                            iniciarRecorridoCumple(card, btn, i);
+                            iniciarRecorridoCumple(card, btn, key);
                         } else {
                             const randomPhrase = phrases[Math.floor(Math.random() * phrases.length)];
-                            // USAMOS EL NUEVO CUADRO BONITO EN VEZ DEL ALERT
                             mostrarCuadroBonito(`" ${randomPhrase} "`);
-                            marcarCompletado(card, btn, i);
+                            marcarCompletado(card, btn, key);
                         }
                     }
                 };
@@ -463,16 +479,16 @@
 
             card.appendChild(btn);
             calendarEl.appendChild(card);
-        }
+        });
 
         // Función para cambiar visualmente a "Completado" y guardar
-        function marcarCompletado(card, btn, dia) {
+        function marcarCompletado(card, btn, key) {
             card.classList.add('completed');
             card.classList.remove('birthday');
             btn.innerText = "¡Lista mi niña! 💜";
             btn.style.backgroundColor = "var(--purple-700)";
             btn.style.color = "white";
-            localStorage.setItem(`aitana-inj-${dia}`, 'true');
+            localStorage.setItem(key, 'true');
         }
 
         // --- FUNCIONES DEL CUADRO BONITO DE MENSAJE (MODAL) ---
@@ -499,7 +515,7 @@
         }
 
         // --- LÓGICA DEL RECORRIDO DE CUMPLEAÑOS ---
-        function iniciarRecorridoCumple(card, btn, dia) {
+        function iniciarRecorridoCumple(card, btn, key) {
             const overlay = document.getElementById('journey-overlay');
             const textEl = document.getElementById('journey-text');
             const hintEl = document.getElementById('journey-hint');
@@ -525,7 +541,7 @@
                     hintEl.innerText = "Toca una vez más para marcar tu inyección de hoy 💉";
                 } else {
                     overlay.classList.remove('active');
-                    marcarCompletado(card, btn, dia);
+                    marcarCompletado(card, btn, key);
                     // Usamos el cuadro bonito al final del cumpleaños también
                     mostrarCuadroBonito("¡Feliz cumpleaños mi amor! Eres muy amada. 💜🎂");
                 }
